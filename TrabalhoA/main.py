@@ -1,26 +1,23 @@
-import sys, names
-
-def print_hi():
-    # Use a breakpoint in the code line below to debug your script.
-    o1 = Owner(1, 'Ze', 19/10/2000, 987654321, 'Coimbra')
-    o2 = Owner(None, None, None, None, None)
-    l = []
-    l.append(o1)
-    l.append(o2)
-    print(sys.getsizeof(l))
-    print("##")
-    for i in range(10):
-        print(names.get_full_name())
+import json
+import sys
+import time
 
 
+def serialize(o):
+    return json.dumps(o, indent=4, cls=Encoder)
 
 
+def deserialize(d):
+    return json.loads(d)
 
-def genOwner(n):
 
-     for i in range (n):
-         name = names.get_full_name(gender='male')
-         print(name)
+def gen_owners(n):
+    owners = []
+    for i in range(1, n + 1):
+        name = "Owner" + str(i)
+        owners.append(Owner(i, name, "912345678", "Coimbra"))
+
+    return owners
 
 
 class Owner(object):
@@ -44,7 +41,24 @@ class Pet(object):
         self.owner = owner
 
 
+class Encoder(json.JSONEncoder):
+    def default(self, o):
+        return o.__dict__
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    #print_hi()
-    genOwner(100)
+    # print_hi()
+    owners = gen_owners(1000)
+
+    startS = time.perf_counter()
+    jsonData = serialize(owners)
+    endS = time.perf_counter()
+
+    startD = time.perf_counter()
+    x = deserialize(jsonData)
+    endD = time.perf_counter()
+
+    print(endS-startS)
+    print(endD-startD)
+    print(x)
