@@ -1,38 +1,7 @@
 import json
-import sys
 import time
 import msgpack
-
-
-def serialize(d):
-    with open('jsonSerialized.txt', 'w') as f:
-        json.dump(d, f, cls=Encoder)
-
-def deserialize():
-    with open('jsonSerialized.txt') as f:
-        json.load(f)
-
-def gen_owners(n, owners):
-    for i in range(1, n + 1):
-        name = "Owner" + str(i)
-        owners.append(Owner(i, name, "19/10/2000", "912345678", "Coimbra"))
-
-def gen_pets(n, pets):
-    for i in range(1, n + 1):
-        name = "Pet" + str(i)
-        species = "Species" + str(i)
-        description = name + "that belongs to " + species
-        if i % 2 == 0:
-            pets.append(Pet(i, name, species, "Male", 8, "10/04/2005", description, i))
-        else:
-            pets.append(Pet(i, name, species, "Female", 4, "10/04/2005", description, i))
-
-def genData(n):
-    data = []
-    gen_owners(n, data)
-    gen_pets(n, data)
-    return data
-
+import statistics
 
 class Owner(object):
     def __init__(self, id, name, birth, phone, address):
@@ -60,38 +29,107 @@ class Encoder(json.JSONEncoder):
         return o.__dict__
 
 
-def encoderMsgPack(o):
+def JSON(n, data):
+    s = open("json_time_s.txt", "w")
+    d = open("json_time_d.txt", "w")
+    mean_s = []
+    mean_d = []
+    for i in range(n):
+        with open('json_serialized.txt', 'w') as f:
+            startS = time.perf_counter()
+            json.dump(data, f, cls=Encoder)
+            endS = time.perf_counter()
+
+
+        with open('json_serialized.txt') as f:
+            startD = time.perf_counter()
+            json.load(f)
+            endD = time.perf_counter()
+
+        timeS = endS - startS
+        timeD = endD - startD
+
+        mean_s.append(timeS)
+        mean_d.append(timeD)
+
+        s.write(str(timeS) + '\n')
+        d.write(str(timeD) + '\n')
+
+        #print(f"[JSON] - Serialization time: {timeS}")
+        #print(f"[JSON] - Deserialization time {timeD}")
+
+    s.write('\n' + str(statistics.mean(mean_s)))
+    d.write('\n' + str(statistics.mean(mean_d)))
+
+    s.close()
+    d.close()
+
+
+def MSGPACK(n, data):
+    s = open("msgpack_time_s.txt", "w")
+    d = open("msgpack_time_d.txt", "w")
+    mean_s = []
+    mean_d = []
+    for i in range(n):
+        with open('msgpack_serialized.txt', 'wb') as f:
+            startS = time.perf_counter()
+            msgpack.pack(data, f, default=encoder_msgpack)
+            endS = time.perf_counter()
+
+        with open('msgpack_serialized.txt', 'rb') as f:
+            startD = time.perf_counter()
+            msgpack.unpack(f)
+            endD = time.perf_counter()
+
+        timeS = endS - startS
+        timeD = endD - startD
+
+        mean_s.append(timeS)
+        mean_d.append(timeD)
+
+        s.write(str(timeS) + '\n')
+        d.write(str(timeD) + '\n')
+
+        #print(f"[MSG PACK] - Serialization time: {timeS}")
+        #print(f"[MSG PACK] - Deserialization time: {timeD}")
+
+    s.write('\n' + str(statistics.mean(mean_s)))
+    d.write('\n' + str(statistics.mean(mean_d)))
+
+    s.close()
+    d.close()
+
+
+def encoder_msgpack(o):
     return o.__dict__
 
-# Press the green button in the gutter to run the script.
+
+def gen_owners(n, owners):
+    for i in range(1, n + 1):
+        name = "Owner " + str(i)
+        owners.append(Owner(i, name, "19/10/2000", "912345678", "Coimbra"))
+
+
+def gen_pets(n, pets):
+    for i in range(1, n + 1):
+        name = "Pet " + str(i)
+        species = "Species " + str(i)
+        description = name + " that belongs to " + species
+        if i % 2 == 0:
+            pets.append(Pet(i, name, species, "Male", 8, "10/04/2005", description, i))
+        else:
+            pets.append(Pet(i, name, species, "Female", 4, "10/04/2005", description, i))
+
+
+def gen_data(n):
+    data = []
+    gen_owners(n, data)
+    gen_pets(n, data)
+    return data
+
+
 if __name__ == '__main__':
-    data = genData(100) #gerar dados
-
-    startS = time.perf_counter()
-    serialize(data)
-    endS = time.perf_counter()
-
-    startD = time.perf_counter()
-    deserialize()
-    endD = time.perf_counter()
-
-    print(f"[JSON] - Serializing time: {endS - startS}")
-    print(f"[JSON] - Deserialization time {endD - startD}")
-
-    # MSG PACK
-    print("MSG PACK")
-
-    with open('msgPackSerialized.txt', 'wb') as f:
-        mpStartS = time.perf_counter()
-        msgpack.pack(data, f, default=encoderMsgPack)
-        mpEndS = time.perf_counter()
-
-    mpStartD = time.perf_counter()
-    with open('msgPackSerialized.txt', 'rb') as f:
-        unpackedOwners = msgpack.unpack(f)
-    mpEndD = time.perf_counter()
-
-    print(f"[MSG PACK] - Serialization time: {mpEndS - mpStartS}")
-    print(f"[MSG PACK] - Deserialization time: {mpEndD - mpStartD}")
-    #print(packed)
-    #print(unpacked)
+    data = gen_data(100) #gerar dados
+    reps = 10
+    JSON(reps, data)
+    MSGPACK(reps, data)
