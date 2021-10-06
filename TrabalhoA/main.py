@@ -32,8 +32,8 @@ class Encoder(json.JSONEncoder):
 def JSON(n, data):
     s = open("json_time_s.txt", "w")
     d = open("json_time_d.txt", "w")
-    mean_s = []
-    mean_d = []
+    times_s = []
+    times_d = []
     for i in range(n):
         with open('json_serialized.txt', 'w') as f:
             startS = time.perf_counter()
@@ -49,8 +49,8 @@ def JSON(n, data):
         timeS = endS - startS
         timeD = endD - startD
 
-        mean_s.append(timeS)
-        mean_d.append(timeD)
+        times_s.append(timeS)
+        times_d.append(timeD)
 
         s.write(str(timeS) + '\n')
         d.write(str(timeD) + '\n')
@@ -58,8 +58,10 @@ def JSON(n, data):
         #print(f"[JSON] - Serialization time: {timeS}")
         #print(f"[JSON] - Deserialization time {timeD}")
 
-    s.write('\n' + str(statistics.mean(mean_s)))
-    d.write('\n' + str(statistics.mean(mean_d)))
+    s.write('\n' + str(statistics.mean(times_s)))
+    s.write('\n' + str(statistics.pstdev(times_s)))
+    d.write('\n' + str(statistics.mean(times_d)))
+    d.write('\n' + str(statistics.pstdev(times_d)))
 
     s.close()
     d.close()
@@ -68,8 +70,8 @@ def JSON(n, data):
 def MSGPACK(n, data):
     s = open("msgpack_time_s.txt", "w")
     d = open("msgpack_time_d.txt", "w")
-    mean_s = []
-    mean_d = []
+    times_s = []
+    times_d = []
     for i in range(n):
         with open('msgpack_serialized.txt', 'wb') as f:
             startS = time.perf_counter()
@@ -84,8 +86,8 @@ def MSGPACK(n, data):
         timeS = endS - startS
         timeD = endD - startD
 
-        mean_s.append(timeS)
-        mean_d.append(timeD)
+        times_s.append(timeS)
+        times_d.append(timeD)
 
         s.write(str(timeS) + '\n')
         d.write(str(timeD) + '\n')
@@ -93,8 +95,10 @@ def MSGPACK(n, data):
         #print(f"[MSG PACK] - Serialization time: {timeS}")
         #print(f"[MSG PACK] - Deserialization time: {timeD}")
 
-    s.write('\n' + str(statistics.mean(mean_s)))
-    d.write('\n' + str(statistics.mean(mean_d)))
+    s.write('\n' + str(statistics.mean(times_s)))
+    s.write('\n' + str(statistics.pstdev(times_s)))
+    d.write('\n' + str(statistics.mean(times_d)))
+    d.write('\n' + str(statistics.pstdev(times_d)))
 
     s.close()
     d.close()
